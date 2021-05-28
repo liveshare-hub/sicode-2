@@ -1,15 +1,13 @@
-from PIL import Image, ImageDraw
-from io import BytesIO
-from django.core.files import File
 import qrcode
+import six
+qr = qrcode.QRCode(
+    version=1,
+    error_correction=qrcode.constants.ERROR_CORRECT_L,
+    box_size=10,
+    border=4,
+)
+qr.add_data('Some data')
+qr.make(fit=True)
 
-def createQRCode(request, data):
-    user = request.user
-    qrcode_img = qrcode.make(user)
-    canvas = Image.new('RGB',(290, 290), 'white')
-    draw = ImageDraw.Draw(canvas)
-    canvas.paste(qrcode_img)
-    fname = f'qr-code-{user}.png'
-    buffer = BytesIO()
-    canvas.save(buffer,'PNG')
-    canvas.close()
+img = qr.make_image(fill_color="black", back_color="white")
+img.save(six.BytesIO())

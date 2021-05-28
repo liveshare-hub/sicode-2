@@ -1,15 +1,24 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import RegexValidator
+from PIL import Image, ImageDraw
+import uuid
+import qrcode
+from io import BytesIO
+from django.core.files import File
+
+# from .uuid_gen import autoGen
 
 NIK_VALIDATOR = RegexValidator("^\d{16}$",
-    "Format NIK Tidak Sesuai")
+                               "Format NIK Tidak Sesuai")
 
-HP_VALIDATOR = RegexValidator("^(08+[1-9])([0-9]{7,9})$", "Format NO HP TIDAK SESUA!!!")
+HP_VALIDATOR = RegexValidator(
+    "^(08+[1-9])([0-9]{7,9})$", "Format NO HP TIDAK SESUA!!!")
 
 NO_REK_VALIDATOR = RegexValidator("^\d{6,}$", "No Rekening Harus Berupa Angka")
 
-EKSTENSI_VALIDATOR = RegexValidator(".*\.(jpg|JPG|gif|GIF|doc|DOC|pdf|PDF)", "Only Support PDF dan JPG")
+EKSTENSI_VALIDATOR = RegexValidator(
+    ".*\.(jpg|JPG|gif|GIF|doc|DOC|pdf|PDF)", "Only Support PDF dan JPG")
 
 SEGMEN = (
     ('PU', 'PENERIMA UPAH'),
@@ -18,15 +27,16 @@ SEGMEN = (
 )
 
 STATUS = (
-    ('1','BELUM MENIKAH'),
-    ('2','MENIKAH')
+    ('1', 'BELUM MENIKAH'),
+    ('2', 'MENIKAH')
 )
 
 STATUS_APPROVAL = (
-    ('DALAM PEMERIKSAAN','DALAM PEMERIKSAAN'),
-    ('DISETUJUI','DISETUJUI'),
-    ('DITOLAK','DITOLAK')
+    ('DALAM PEMERIKSAAN', 'DALAM PEMERIKSAAN'),
+    ('DISETUJUI', 'DISETUJUI'),
+    ('DITOLAK', 'DITOLAK')
 )
+
 
 class Perusahaan(models.Model):
     nama = models.CharField(max_length=200)
@@ -39,7 +49,8 @@ class Perusahaan(models.Model):
 
     def __str__(self):
         return self.nama
-    
+
+
 class DataKlaim(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     nama = models.CharField(max_length=200)
@@ -59,11 +70,16 @@ class DataKlaim(models.Model):
     tgl_lahir_d = models.DateField(null=True, blank=True)
     no_hp = models.CharField(max_length=15, validators=[HP_VALIDATOR])
     nama_rekening = models.CharField(max_length=100)
-    no_rekening = models.CharField(max_length=16, validators=[NO_REK_VALIDATOR])
-    file_kk = models.FileField(upload_to='kk/', validators=[EKSTENSI_VALIDATOR])
-    file_ktp = models.FileField(upload_to='ktp/', validators=[EKSTENSI_VALIDATOR])
-    file_buku_nikah = models.FileField(upload_to='buku-nikah/', validators=[EKSTENSI_VALIDATOR])
-    file_lain = models.FileField(upload_to='lain/', null=True, blank=True, validators=[EKSTENSI_VALIDATOR])
+    no_rekening = models.CharField(
+        max_length=16, validators=[NO_REK_VALIDATOR])
+    file_kk = models.FileField(
+        upload_to='kk/', validators=[EKSTENSI_VALIDATOR])
+    file_ktp = models.FileField(
+        upload_to='ktp/', validators=[EKSTENSI_VALIDATOR])
+    file_buku_nikah = models.FileField(
+        upload_to='buku-nikah/', validators=[EKSTENSI_VALIDATOR])
+    file_lain = models.FileField(
+        upload_to='lain/', null=True, blank=True, validators=[EKSTENSI_VALIDATOR])
     created_on = models.DateField(auto_now_add=True)
 
     class Meta:
@@ -72,6 +88,7 @@ class DataKlaim(models.Model):
 
     def __str__(self):
         return '{} - {}'.format(self.nik, self.nama)
+
 
 class DaftarHRD(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -84,8 +101,45 @@ class DaftarHRD(models.Model):
     def __str__(self):
         return self.nama
 
+
 class ApprovalHRD(models.Model):
-    status = models.CharField(choices=STATUS_APPROVAL, default='DALAM PEMERIKSAAN', max_length=20)
+    status = models.CharField(choices=STATUS_APPROVAL,
+                              default='DALAM PEMERIKSAAN', max_length=20)
     klaim = models.ForeignKey(DataKlaim, on_delete=models.CASCADE)
     hrd = models.ForeignKey(DaftarHRD, on_delete=models.CASCADE)
     keterangan = models.TextField(null=True, blank=True)
+
+
+class toQRCode(models.Model):
+    tk_klaim = models.ForeignKey(ApprovalHRD, on_delete=models.CASCADE)
+    url_uuid = models.UUIDField(default=uuid.uuid4(), editable=False)
+    img_svg = models.ImageField(upload_to='qrcode/')
+
+    def __str__(self):
+        return self.tk_klaim.klaim.nama
+
+    def save(self, *args, **kwargs):
+        qr = qrcode.QRCode(
+            version=20,
+            error_correction=qrcode.constants.ERROR_CORRECT_M,
+            box_size=30,
+            border=4,
+        )
+        qr.add_data('http://127.0.0.1:8000/qr-code/{}/'.format(self.url_uuid))
+        qr.make(fit=False)
+        # qrcode_image = qrcode.make(
+        # 'http://127.0.0.1:8000/qr-code/{}/'.format(self.url_uuid))
+        qrcode_image = qr.make_image(fill_color="black", back_color="white")
+
+        # canvas = Image.new('RGB', (300, 300), 'white')
+        # draw = ImageDraw.Draw(canvas)
+        # canvas.paste(qrcode_image)
+        # uid = uuid.uuid4()
+        fname = '{}.PNG'.format(self.tk_klaim.klaim.nama)
+        buffer = BytesIO()
+        # canvas.save(buffer, 'PNG')
+        qrcode_image.save(buffer, 'PNG')
+        self.img_svg.save(fname, File(buffer), save=False)
+        # canvas.close()
+        qrcode_image.close()
+        super().save(*args, **kwargs)

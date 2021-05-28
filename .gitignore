@@ -6,6 +6,9 @@ __pycache__/
 *.pytest_cache
 .coverage
 
+# media
+media
+
 # database & logs
 *.db
 *.sqlite3

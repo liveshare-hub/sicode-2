@@ -201,10 +201,25 @@ function showhide(){
         }
     else{
             $('div[name="pasangan"]').hide();
-            console.log('Salah')
+            //console.log('Salah')
         }
 }
 </script>
 
+<script>
+$(document).ready(function() {
+    var reg = new RegExp('^\\d+$');
+    $('input[type=text]').keyup(function(){
+        $(this).val($(this).val().toUpperCase());
+    });
+    $("#id_nik, #id_no_rekening, #id_no_hp").keyup(function(){
+        var VAL = this.value;
+        if(!reg.test(VAL)) {
+            alert('NO NIK HANYA BERISI ANGKA')
+            $(this).val("")
+        }
+    });
+});
 
+</script>
 {% endblock  %}

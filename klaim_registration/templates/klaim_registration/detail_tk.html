@@ -1,0 +1,156 @@
+{% extends 'layouts/base-fullscreen.html' %}
+
+{% block title %}Detail TK {{datas.0.tk_klaim.klaim.nama}}{% endblock  %}
+
+{% block content %}
+
+<div class="row">    
+    <div class="col col-md-6">
+        <div class="card">
+            <div class="card-header"><i class="fa fa-align-justify"></i> {{datas.0.tk_klaim.klaim.kpj}} - {{datas.0.tk_klaim.klaim.npp}}</div>
+            <div class="card-body">
+                <table class="table table-responsive-sm table-bordered table-striped table-sm">
+                
+                <tbody>
+                
+                {% for data in datas %}
+                    <tr>
+                        <td>NAMA</td>
+                        <td>{{data.tk_klaim.klaim.nama}}</tr>
+                    </tr>
+                    <tr>
+                        <td>NIK</td>
+                        <td>{{data.tk_klaim.klaim.nik}}</tr>
+                    </tr>
+                    <tr>
+                        <td>TEMPAT/TGL. LAHIR</td>
+                        <td>{{data.tk_klaim.klaim.tempat_lahir}}/{{data.tk_klaim.klaim.tgl_lahir}}</tr>
+                    </tr>
+                    <tr>
+                        <td>NAMA GADIS IBU KANDUNG</td>
+                        <td>{{data.tk_klaim.klaim.nama_ibu}}</tr>
+                    </tr>
+                    <tr>
+                        <td>STATUS</td>
+                        <td id="status">{{data.tk_klaim.klaim.get_status_display}}</tr>
+                    </tr>
+                    <tr>
+                        <td>ALAMAT</td>
+                        <td>{{data.tk_klaim.klaim.alamat}}</tr>
+                    </tr>
+                    <tr>
+                        <td>NO. HANDPHONE/WA</td>
+                        <td>{{data.tk_klaim.klaim.no_hp}}</tr>
+                    </tr>
+                    <tr>
+                        <td>NAMA PEMILIK REKENING</td>
+                        <td>{{data.tk_klaim.klaim.nama_rekening}}</tr>
+                    </tr>
+                    <tr>
+                        <td>NO. REKENING</td>
+                        <td>{{data.tk_klaim.klaim.no_rekening}}</tr>
+                    </tr>
+                {% endfor %}    
+                
+                
+                </tbody>
+                </table>
+                
+            </div>
+        </div>
+    </div>
+    <div class="col col-md-6">
+        <div class="card">
+            <div class="card-header"><i class="fa fa-align-justify"></i> FILES</div>
+            <div class="card-body">
+                <table class="table table-responsive-sm table-bordered table-striped table-sm">
+                
+                <tbody>
+                    <tr>
+                        <td>KARTU KELUARGA</td>
+                        <td style="text-align:center"><a href="{{datas.0.tk_klaim.klaim.file_kk.url}}" class="badge badge-info" type="button">Download</a></td>
+                    </tr>
+                    <tr>
+                        <td>NIK</td>
+                        <td style="text-align:center"><a href="{{datas.0.tk_klaim.klaim.file_ktp.url}}" class="badge badge-info" type="button">Download</a></td>
+                    </tr>
+                    <tr>
+                        <td>BUKU NIKAH</td>
+                        <td style="text-align:center"><a href="{{datas.0.tk_klaim.klaim.file_buku_nikah.url}}" class="badge badge-info" type="button">Download</a></td>
+                    </tr>
+                    <tr>
+                        <td>BERKAS LAINNYA</td>
+                        {% if datas.0.tk_klaim.klaim.file_lain %}
+                        <td style="text-align:center"><a href="{{datas.0.tk_klaim.klaim.file_lain.url}}" class="badge badge-info" type="button">Download</a></td>
+                        {% else %}
+                            <td style="text-align:center"><span class="badge badge-warning">No File</span></td>
+                        {% endif %}
+                    </tr>
+                </tbody>
+                </table>
+                
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row" name="pasangan">
+    <div class="col">
+        <div class="card">
+            <div class="card-header"><i class="fa fa-align-justify"></i> DATA KELUARGA</div>
+            <div class="card-body">
+                <table class="table table-responsive-sm table-bordered table-striped table-sm">
+                <thead>
+                    <tr>
+                        <th>NAMA</th>
+                        <th>Tgl. Lahir</th>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            {{datas.0.tk_klaim.klaim.nama_pasangan}}
+                        </td>
+                        <td>
+                            {{datas.0.tk_klaim.klaim.tgl_lahir_pasangan}}
+                        </td>
+                        <td>
+                            {{datas.0.tk_klaim.klaim.nama_anak_s}}
+                        </td>
+                        <td>
+                            {{datas.0.tk_klaim.klaim.tgl_lahir_s}}
+                        </td>
+                        <td>
+                            {{datas.0.tk_klaim.klaim.nama_anak_d}}
+                        </td>
+                        <td>
+                            {{datas.0.tk_klaim.klaim.tgl_lahir_d}}
+                        </td>
+                    </tr>
+                </tbody>
+                </table>
+                
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock  %}
+
+{% block javascripts %}
+<script>
+$(document).ready(function() {
+    $('div[name="pasangan"]').hide();
+    showhide();
+    
+});
+
+function showhide(){
+      if( $('#status').val() === 'MENIKAH'){
+            
+            $('div[name="pasangan"]').show();
+        }
+    else{
+            $('div[name="pasangan"]').hide();
+            //console.log('Salah')
+        }
+}
+</script>
+{% endblock  %}

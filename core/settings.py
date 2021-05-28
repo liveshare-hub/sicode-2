@@ -31,8 +31,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'authentication',
     'app',  # Enable the inner app
     'klaim_registration',
+    # 'qr_code',
 ]
 
 MIDDLEWARE = [
@@ -98,6 +100,19 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# CACHES = {
+#     'default': {
+#         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+#     },
+#     'qr-code': {
+#         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+#         'LOCATION': 'qr-code-cache',
+#         'TIMEOUT': 3600
+#     }
+# }
+
+# QR_CODE_CACHE_ALIAS = 'qr-code'
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.0/topics/i18n/
@@ -128,3 +143,11 @@ STATICFILES_DIRS = (
 )
 #############################################################
 #############################################################
+
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_URL = '/media/'
+
+
+X_FRAME_OPTIONS = 'ALLOWALL'
+
+XS_SHARING_ALLOWED_METHODS = ['POST', 'GET', 'OPTIONS', 'PUT', 'DELETE']

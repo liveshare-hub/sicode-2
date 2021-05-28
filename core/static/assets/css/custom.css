@@ -1,3 +1,7 @@
+input.form-control {
+    text-transform: capitalize;
+}
+
 .col-form-label {
     font-size: 10px;
 }
