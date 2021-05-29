@@ -2,7 +2,7 @@
 
 {% load static %}
 
-{% block title %}FORM INPUT DATABASE TK{% endblock  %}
+{% block title %}FORM INPUT DATA TK{% endblock  %}
 
 {% block stylesheets %}
 
@@ -215,7 +215,7 @@ $(document).ready(function() {
     $("#id_nik, #id_no_rekening, #id_no_hp").keyup(function(){
         var VAL = this.value;
         if(!reg.test(VAL)) {
-            alert('NO NIK HANYA BERISI ANGKA')
+            alert('INPUT HANYA BERUPA ANGKA')
             $(this).val("")
         }
     });

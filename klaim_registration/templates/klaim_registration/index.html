@@ -14,10 +14,9 @@
 {% block content %}
 
 {% for message in messages  %}
-  <div class="alert alert-warning" role="alert">
-  Anda sudah pernah melakuakn pengajuan. Silahkan
-  <a class="alert-link" href="{% url 'logout' %}">Klik tulisan ini</a>
-  untuk keluar .</div>
+  <div class="alert alert-warning" role="alert" id="warning-alert">
+    {{message}}
+  </div>
 {% endfor %}
 
   <main class="c-main">
@@ -63,11 +62,11 @@
           <td>{{data.nama_ibu}}</td>
           <td>{{data.get_status_display}}</td>
           <td>{{data.no_rekening}}</td>
-          <td><a href="{{ data.file_kk.url }}" class="badge bg-info text-dark">Download</a></td>
-          <td><a href="{{ data.file_ktp.url }}" class="badge bg-info text-dark">Download</a></td>
-          <td><a href="{{ data.file_buku_nikah.url }}" class="badge bg-info text-dark">Download</a></td>
+          <td><a href="{{ data.file_kk.url }}" class="badge bg-info text-dark" rel="noopener noreferrer">Download</a></td>
+          <td><a href="{{ data.file_ktp.url }}" class="badge bg-info text-dark" rel="noopener noreferrer">Download</a></td>
+          <td><a href="{{ data.file_buku_nikah.url }}" class="badge bg-info text-dark" rel="noopener noreferrer">Download</a></td>
           {% if data.file_lain %}
-            <td><a href="{{ data.file_lain.url }}" class="badge bg-info text-dark">Download</a></td>
+            <td><a href="{{ data.file_lain.url }}" class="badge bg-info text-dark" rel="noopener noreferrer">Download</a></td>
           {% else %}
             <td>Belum Upload</td>
           {% endif %}
@@ -146,6 +145,10 @@ $(document).ready(function() {
     } ).draw();
 } );
 </script>
-
+<script>
+$("#warning-alert").fadeTo(2000, 500).slideUp(500, function(){
+    $("#warning-alert").slideUp(500);
+});
+</script>
 
 {% endblock javascripts %}

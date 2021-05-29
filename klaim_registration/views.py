@@ -14,6 +14,7 @@ from django.core import serializers
 
 from .form import DataKlaimForm
 from .models import DataKlaim, Perusahaan, ApprovalHRD, DaftarHRD, toQRCode
+from .decorators import admin_only
 
 
 @login_required(login_url='/accounts/login/')
@@ -43,13 +44,14 @@ def index(request):
 
 
 @login_required(login_url='/accounts/login/')
+@admin_only
 def tambahKlaim(request):
-    user = request.user
-    cekKlaim = ApprovalHRD.objects.select_related('klaim__user').filter(
-        klaim__user__username=user, status='DISETUJUI')
-    if cekKlaim.exists():
-        messages.warning(request, "Akun anda sudah pernah mengajukan KLAIM")
-        return redirect(reverse('home-klaim'))
+    # user = request.user
+    # cekKlaim = ApprovalHRD.objects.select_related('klaim__user').filter(
+    #     klaim__user__username=user, status='DISETUJUI')
+    # if cekKlaim.exists():
+    #     messages.warning(request, "Akun anda sudah pernah mengajukan KLAIM")
+    #     return redirect(reverse('home-klaim'))
     # print(user.is_authenticated)
     if request.method == 'POST':
         forms = DataKlaimForm(request.POST, request.FILES)
@@ -71,20 +73,28 @@ def tambahKlaim(request):
     return render(request, 'klaim_registration/daftar.html', {'forms': forms})
 
 
+@login_required(login_url='/accounts/login/')
+@admin_only
 def tambahKlaim1(request):
     if request.method == 'POST':
         forms = DataKlaimForm(request.POST, request.FILES)
         if forms.is_valid():
             post = forms.save(commit=False)
-            username = 'user_'+(''.join(random.choice(string.digits)
-                                        for i in range(3)))
+            random_str = string.ascii_letters+string.digits
+            username = 'user_'+(''.join(random.choice(random_str)
+                                        for i in range(4)))
             password = make_password('WELCOME1', salt=[username])
-            post.user = User.objects.create(
-                username=username, password=password)
-            post.save()
-            ApprovalHRD.objects.create(klaim_id=post.id, hrd_id=post.npp_id)
-            toQRCode.objects.create(tk_klaim_id=post.id)
-        return redirect('home-klaim')
+            cekUser = User.objects.all().filter(username=username)
+            if cekUser.exists():
+                messages.WARNING(request, "USER SUDAH DIPAKAI")
+            else:
+                post.user = User.objects.create(
+                    username=username, password=password)
+                post.save()
+                ApprovalHRD.objects.create(
+                    klaim_id=post.id, hrd_id=post.npp_id)
+                toQRCode.objects.create(tk_klaim_id=post.id)
+            return redirect('home-klaim')
     else:
         forms = DataKlaimForm()
     return render(request, 'klaim_registration/daftar.html', {'forms': forms})
@@ -143,11 +153,12 @@ def daftarKlaimHRD1(request):
 #     }
 #     return render(request, 'klaim_registration/modal.html', context)
 
-
-def get_klaimhrd_json(request, id):
-    hrd_qs = list(ApprovalHRD.objects.select_related('hrd__user').filter(hrd__user__username=request.user, id=id).values(
-        'id', 'klaim__nama', 'klaim__nik', 'klaim__kpj', 'klaim__npp', 'klaim__tempat_lahir', 'klaim__tgl_lahir',
-        'klaim__nama_ibu', 'klaim__status', 'klaim__nama_rekening', 'klaim__no_rekening', 'klaim__no_hp'
+@ login_required(login_url='/accounts/login/')
+@admin_only
+def get_klaimhrd_json(request, klaim_id):
+    hrd_qs = list(toQRCode.objects.select_related('tk_klaim').filter(tk_klaim__hrd__user__username=request.user, tk_klaim__klaim_id=klaim_id).values(
+        'tk_klaim_id', 'tk_klaim__klaim__nama', 'tk_klaim__klaim__nik', 'tk_klaim__klaim__kpj', 'tk_klaim__klaim__npp', 'tk_klaim__klaim__tempat_lahir', 'tk_klaim__klaim__tgl_lahir',
+        'tk_klaim__klaim__nama_ibu', 'tk_klaim__klaim__status', 'tk_klaim__klaim__nama_rekening', 'tk_klaim__klaim__no_rekening', 'tk_klaim__klaim__no_hp'
     ))
 
     return JsonResponse({'data': hrd_qs})
@@ -161,6 +172,7 @@ def get_detail_tk(request):
             tk_klaim__hrd__user__username=request.user)
 
     if request.is_ajax:
+
         ApprovalHRD.objects.filter(id=request.POST.get('id')).update(
             status=request.POST.get('status'), keterangan=request.POST.get('keterangan'))
 
