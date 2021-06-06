@@ -13,6 +13,14 @@ class DataKlaimForm(forms.ModelForm):
             }
         ))
 
+    email = forms.EmailField(
+        required=False,
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Masukkan Email Anda'
+        })
+    )
+
     class Meta:
         model = DataKlaim
         exclude = ('user',)

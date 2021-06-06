@@ -18,7 +18,7 @@ HP_VALIDATOR = RegexValidator(
 NO_REK_VALIDATOR = RegexValidator("^\d{6,}$", "No Rekening Harus Berupa Angka")
 
 EKSTENSI_VALIDATOR = RegexValidator(
-    ".*\.(jpg|JPG|gif|GIF|doc|DOC|pdf|PDF)", "Only Support PDF dan JPG")
+    ".*\.(jpg|JPG|JPEG|pdf|PDF)", "Only Support PDF dan JPG")
 
 SEGMEN = (
     ('PU', 'PENERIMA UPAH'),
@@ -69,6 +69,7 @@ class DataKlaim(models.Model):
     nama_anak_d = models.CharField(max_length=100, blank=True, null=True)
     tgl_lahir_d = models.DateField(null=True, blank=True)
     no_hp = models.CharField(max_length=15, validators=[HP_VALIDATOR])
+    email = models.EmailField(max_length=200, null=True, blank=True)
     nama_rekening = models.CharField(max_length=100)
     no_rekening = models.CharField(
         max_length=16, validators=[NO_REK_VALIDATOR])
@@ -125,7 +126,7 @@ class toQRCode(models.Model):
             box_size=30,
             border=4,
         )
-        qr.add_data('http://127.0.0.1:8000/qr-code/{}/'.format(self.url_uuid))
+        qr.add_data('https://sicode.id/qr-code/{}/'.format(self.url_uuid))
         qr.make(fit=False)
         # qrcode_image = qrcode.make(
         # 'http://127.0.0.1:8000/qr-code/{}/'.format(self.url_uuid))

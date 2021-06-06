@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, reverse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import make_password
 from django.contrib import messages
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from django.shortcuts import get_object_or_404
 from django.db.models import Subquery, OuterRef, IntegerField
 from django.http import JsonResponse
@@ -15,6 +15,18 @@ from django.core import serializers
 from .form import DataKlaimForm
 from .models import DataKlaim, Perusahaan, ApprovalHRD, DaftarHRD, toQRCode
 from .decorators import admin_only
+# from .kirim_email import kirimEmail
+# from .send_mail import send_mail
+from django.core.mail import EmailMessage, EmailMultiAlternatives
+# from core.settings import EMAIL_HOST_USER
+from django.conf import settings
+# from django.http import HttpResponse
+from django.template.loader import render_to_string
+from email.mime.image import MIMEImage
+from django.utils.html import strip_tags
+from email.mime.base import MIMEBase
+from email import encoders
+
 
 
 @login_required(login_url='/accounts/login/')
@@ -80,7 +92,7 @@ def tambahKlaim1(request):
         forms = DataKlaimForm(request.POST, request.FILES)
         if forms.is_valid():
             post = forms.save(commit=False)
-            random_str = string.ascii_letters+string.digits
+            random_str = string.digits
             username = 'user_'+(''.join(random.choice(random_str)
                                         for i in range(4)))
             password = make_password('WELCOME1', salt=[username])
@@ -88,13 +100,23 @@ def tambahKlaim1(request):
             if cekUser.exists():
                 messages.WARNING(request, "USER SUDAH DIPAKAI")
             else:
-                post.user = User.objects.create(
-                    username=username, password=password)
+                buat_user = User.objects.create(
+                    username=username, password=password
+                )
+                post.user_id = buat_user.id
+                # print(post.user_id)
+                group = Group.objects.get(name='TK')
+                buat_user.groups.add(group)
+
                 post.save()
                 ApprovalHRD.objects.create(
                     klaim_id=post.id, hrd_id=post.npp_id)
                 toQRCode.objects.create(tk_klaim_id=post.id)
-            return redirect('home-klaim')
+                # data = toQRCode.objects.select_related('tk_klaim').get(
+                #     tk_klaim__klaim__user__id=post.user_id)
+                # print(data)
+                # send_mail(data)
+            return redirect('get-detail')
     else:
         forms = DataKlaimForm()
     return render(request, 'klaim_registration/daftar.html', {'forms': forms})
@@ -182,7 +204,7 @@ def get_detail_tk(request):
     return render(request, 'klaim_registration/hrd.html', context)
 
 
-@ login_required(login_url='/accounts/login/')
+@login_required(login_url='/accounts/login/')
 def daftarSeluruhKlaim(request):
     is_hrd = ApprovalHRD.objects.all().filter(
         hrd__user__username=request.user)[0]
@@ -201,7 +223,7 @@ def qrcode_display(request, id):
 
     return JsonResponse({'data': qr_qs})
 
-
+@login_required(login_url='/accounts/login/')
 def detail_tk(request, uid):
     datas = toQRCode.objects.select_related('tk_klaim').filter(
         url_uuid=uid)
@@ -210,3 +232,46 @@ def detail_tk(request, uid):
         'datas': datas
     }
     return render(request, 'klaim_registration/detail_tk.html', context)
+    
+def sent_mail(request, id):
+    data = toQRCode.objects.select_related('tk_klaim').get(
+                    tk_klaim__klaim__user__id=id)
+    # qrcode = '/home/sicm6455/python/' + data.img_svg.url
+    qrcode = data.img_svg.url
+    to = data.tk_klaim.klaim.email
+    context = {
+        'nama':data.tk_klaim.klaim.nama,
+        'username':data.tk_klaim.klaim.user.username,
+        'qrcode':qrcode
+    }
+    html_content = render_to_string('klaim_registration/email.html',context)
+    text_content = strip_tags(html_content)
+    email = EmailMultiAlternatives (
+            #subject
+            "AKUN ANDA SUDAH TERDAFTAR",
+            #content,
+            text_content,
+            #from email,
+            settings.EMAIL_HOST_USER,
+            #rec lists
+            [to]
+        )
+    email.attach_alternative(html_content,"text/html")
+    filename = '/home/sicm6455/python/' + data.img_svg.url
+    attachment  =open(filename,'rb')
+    part = MIMEBase('application','octet-stream')
+    part.set_payload((attachment).read())
+    encoders.encode_base64(part)
+    part.add_header('Content-Disposition',"attachment; filename= "+filename)
+
+    email.attach(part)
+    # msg_img = MIMEImage(qrcode.file)
+    # msg_img.add_header('Content-ID', '<{}>'.format(qrcode.name))
+    # email.attach(msg_img)
+    # email.attach_file(data.img_svg.url)
+    email.send()
+    # messages.SUCCESS(request, "Email berhasil dikirim !")
+    
+    return redirect('/')
+    
+    

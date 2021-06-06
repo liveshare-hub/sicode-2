@@ -16,10 +16,11 @@ PROJECT_DIR = Path(__file__).parent
 SECRET_KEY = config('SECRET_KEY', default='S#perS3crEt_1122')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=False)
+#DEBUG = config('DEBUG', default=False)
+DEBUG = False
 
 # load production server from .env
-ALLOWED_HOSTS = ['localhost', '127.0.0.1',
+ALLOWED_HOSTS = ['sicode.id','localhost', '127.0.0.1',
                  config('SERVER', default='127.0.0.1')]
 
 # Application definition
@@ -34,7 +35,6 @@ INSTALLED_APPS = [
     'authentication',
     'app',  # Enable the inner app
     'klaim_registration',
-    # 'qr_code',
 ]
 
 MIDDLEWARE = [
@@ -75,10 +75,21 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+#     }
+# }
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'sicm6455_my_data',
+        'USER': 'sicm6455_admin',
+        'PASSWORD': 'Sports2021123#$',
+        'HOST': 'localhost',
+        'PORT': '',
     }
 }
 
@@ -100,26 +111,13 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-# CACHES = {
-#     'default': {
-#         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-#     },
-#     'qr-code': {
-#         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-#         'LOCATION': 'qr-code-cache',
-#         'TIMEOUT': 3600
-#     }
-# }
-
-# QR_CODE_CACHE_ALIAS = 'qr-code'
-
 
 # Internationalization
 # https://docs.djangoproject.com/en/3.0/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Jakarta'
 
 USE_I18N = True
 
@@ -130,11 +128,14 @@ USE_TZ = True
 #############################################################
 # SRC: https://devcenter.heroku.com/articles/django-assets
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+from pathlib import Path
+
+# BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.9/howto/static-files/
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+#STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATIC_URL = '/static/'
 
 # Extra places for collectstatic to find static files.
@@ -144,10 +145,18 @@ STATICFILES_DIRS = (
 #############################################################
 #############################################################
 
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+STATIC_ROOT = '/home/sicm6455/python/public/'
+
 MEDIA_URL = '/media/'
+MEDIA_ROOT = '/home/sicm6455/python/media/'
+# MEDIA_ROOT = BASE_DIR / 'media'
 
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 
-X_FRAME_OPTIONS = 'ALLOWALL'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = '587'
+EMAIL_HOST_USER = 'kuliner.mania2019@gmail.com'
+EMAIL_HOST_PASSWORD = 'Rahasia007123#$'
+EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False
 
-XS_SHARING_ALLOWED_METHODS = ['POST', 'GET', 'OPTIONS', 'PUT', 'DELETE']
