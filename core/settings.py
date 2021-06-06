@@ -85,9 +85,9 @@ WSGI_APPLICATION = 'core.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'sicm6455_my_data',
-        'USER': 'sicm6455_admin',
-        'PASSWORD': 'Sports2021123#$',
+        'NAME': '_my_data',
+        'USER': '_admin',
+        'PASSWORD': 'password',
         'HOST': 'localhost',
         'PORT': '',
     }
