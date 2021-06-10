@@ -7,6 +7,7 @@ import qrcode
 from io import BytesIO
 from django.core.files import File
 
+from authentication.models import Profile
 # from .uuid_gen import autoGen
 
 NIK_VALIDATOR = RegexValidator("^\d{16}$",
@@ -52,7 +53,8 @@ class Perusahaan(models.Model):
 
 
 class DataKlaim(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    # user = models.ForeignKey(User, on_delete=models.CASCADE)
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE)
     nama = models.CharField(max_length=200)
     nik = models.CharField(max_length=16, validators=[NIK_VALIDATOR])
     kpj = models.CharField(max_length=11)
@@ -126,21 +128,22 @@ class toQRCode(models.Model):
             box_size=30,
             border=4,
         )
-        qr.add_data('https://sicode.id/qr-code/{}/'.format(self.url_uuid))
+        # qr.add_data('https://sicode.id/qr-code/{}/'.format(self.url_uuid))
+        qr.add_data('http://127.0.0.1/qr-code/{}/'.format(self.url_uuid))
         qr.make(fit=False)
         # qrcode_image = qrcode.make(
         # 'http://127.0.0.1:8000/qr-code/{}/'.format(self.url_uuid))
         qrcode_image = qr.make_image(fill_color="black", back_color="white")
 
-        # canvas = Image.new('RGB', (300, 300), 'white')
-        # draw = ImageDraw.Draw(canvas)
-        # canvas.paste(qrcode_image)
+        canvas = Image.new('RGB', (300, 300), 'white')
+        draw = ImageDraw.Draw(canvas)
+        canvas.paste(qrcode_image)
         # uid = uuid.uuid4()
         fname = '{}.PNG'.format(self.tk_klaim.klaim.nama)
         buffer = BytesIO()
-        # canvas.save(buffer, 'PNG')
-        qrcode_image.save(buffer, 'PNG')
+        canvas.save(buffer, 'PNG')
+        # qrcode_image.save(buffer, 'PNG')
         self.img_svg.save(fname, File(buffer), save=False)
-        # canvas.close()
-        qrcode_image.close()
+        canvas.close()
+        # qrcode_image.close()
         super().save(*args, **kwargs)

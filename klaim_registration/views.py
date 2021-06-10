@@ -15,18 +15,16 @@ from django.core import serializers
 from .form import DataKlaimForm
 from .models import DataKlaim, Perusahaan, ApprovalHRD, DaftarHRD, toQRCode
 from .decorators import admin_only
-# from .kirim_email import kirimEmail
-# from .send_mail import send_mail
+
 from django.core.mail import EmailMessage, EmailMultiAlternatives
-# from core.settings import EMAIL_HOST_USER
+
 from django.conf import settings
-# from django.http import HttpResponse
+
 from django.template.loader import render_to_string
 from email.mime.image import MIMEImage
 from django.utils.html import strip_tags
 from email.mime.base import MIMEBase
 from email import encoders
-
 
 
 @login_required(login_url='/accounts/login/')
@@ -44,7 +42,7 @@ def index(request):
         # return redirect('hrd-klaim')
         return redirect('get-detail')
     else:
-        datas = DataKlaim.objects.filter(user=user).annotate(status_approve=Subquery(
+        datas = DataKlaim.objects.filter(profile__user=user).annotate(status_approve=Subquery(
             ApprovalHRD.objects.filter(klaim_id=OuterRef('pk')).values('status')[:1]))
         size = datas.count()
     context = {
@@ -103,7 +101,8 @@ def tambahKlaim1(request):
                 buat_user = User.objects.create(
                     username=username, password=password
                 )
-                post.user_id = buat_user.id
+                # post.user_id = buat_user.id
+                post.profile.user_id = buat_user.id
                 # print(post.user_id)
                 group = Group.objects.get(name='TK')
                 buat_user.groups.add(group)
@@ -189,9 +188,11 @@ def get_klaimhrd_json(request, klaim_id):
 def get_detail_tk(request):
     datas = toQRCode.objects.select_related('tk_klaim').filter(
         tk_klaim__hrd__user__username=request.user, tk_klaim__status='DALAM PEMERIKSAAN')
-    if not datas.exists():
+    if datas.exists():
         datas = toQRCode.objects.select_related('tk_klaim').filter(
             tk_klaim__hrd__user__username=request.user)
+    else:
+        datas = toQRCode.objects.none()
 
     if request.is_ajax:
 
@@ -223,6 +224,7 @@ def qrcode_display(request, id):
 
     return JsonResponse({'data': qr_qs})
 
+
 @login_required(login_url='/accounts/login/')
 def detail_tk(request, uid):
     datas = toQRCode.objects.select_related('tk_klaim').filter(
@@ -232,37 +234,38 @@ def detail_tk(request, uid):
         'datas': datas
     }
     return render(request, 'klaim_registration/detail_tk.html', context)
-    
+
+
 def sent_mail(request, id):
     data = toQRCode.objects.select_related('tk_klaim').get(
-                    tk_klaim__klaim__user__id=id)
+        tk_klaim__klaim__user__id=id)
     # qrcode = '/home/sicm6455/python/' + data.img_svg.url
     qrcode = data.img_svg.url
     to = data.tk_klaim.klaim.email
     context = {
-        'nama':data.tk_klaim.klaim.nama,
-        'username':data.tk_klaim.klaim.user.username,
-        'qrcode':qrcode
+        'nama': data.tk_klaim.klaim.nama,
+        'username': data.tk_klaim.klaim.user.username,
+        'qrcode': qrcode
     }
-    html_content = render_to_string('klaim_registration/email.html',context)
+    html_content = render_to_string('klaim_registration/email.html', context)
     text_content = strip_tags(html_content)
-    email = EmailMultiAlternatives (
-            #subject
-            "AKUN ANDA SUDAH TERDAFTAR",
-            #content,
-            text_content,
-            #from email,
-            settings.EMAIL_HOST_USER,
-            #rec lists
-            [to]
-        )
-    email.attach_alternative(html_content,"text/html")
+    email = EmailMultiAlternatives(
+        # subject
+        "AKUN ANDA SUDAH TERDAFTAR",
+        # content,
+        text_content,
+        # from email,
+        settings.EMAIL_HOST_USER,
+        # rec lists
+        [to]
+    )
+    email.attach_alternative(html_content, "text/html")
     filename = '/home/sicm6455/python/' + data.img_svg.url
-    attachment  =open(filename,'rb')
-    part = MIMEBase('application','octet-stream')
+    attachment = open(filename, 'rb')
+    part = MIMEBase('application', 'octet-stream')
     part.set_payload((attachment).read())
     encoders.encode_base64(part)
-    part.add_header('Content-Disposition',"attachment; filename= "+filename)
+    part.add_header('Content-Disposition', "attachment; filename= "+filename)
 
     email.attach(part)
     # msg_img = MIMEImage(qrcode.file)
@@ -271,7 +274,5 @@ def sent_mail(request, id):
     # email.attach_file(data.img_svg.url)
     email.send()
     # messages.SUCCESS(request, "Email berhasil dikirim !")
-    
+
     return redirect('/')
-    
-    
