@@ -13,7 +13,8 @@ import string
 from django.core import serializers
 
 from .form import DataKlaimForm
-from .models import DataKlaim, Perusahaan, ApprovalHRD, DaftarHRD, toQRCode
+from .models import DataKlaim, ApprovalHRD, toQRCode
+from authentication.models import Perusahaan, Profile
 from .decorators import admin_only
 
 from django.core.mail import EmailMessage, EmailMultiAlternatives
@@ -33,7 +34,7 @@ def index(request):
 
     is_admin = User.objects.filter(username=user, is_superuser=True)
 
-    is_hrd = DaftarHRD.objects.select_related(
+    is_hrd = Profile.objects.select_related(
         'user').filter(user__username=user)
     if is_admin:
         datas = DataKlaim.objects.all()

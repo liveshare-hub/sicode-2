@@ -75,23 +75,23 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-#     }
-# }
-
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': '_my_data',
-        'USER': '_admin',
-        'PASSWORD': 'password',
-        'HOST': 'localhost',
-        'PORT': '',
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': '_my_data',
+#         'USER': '_admin',
+#         'PASSWORD': 'password',
+#         'HOST': 'localhost',
+#         'PORT': '',
+#     }
+# }
 
 # Password validation
 # https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators
@@ -145,11 +145,12 @@ STATICFILES_DIRS = (
 #############################################################
 #############################################################
 
-STATIC_ROOT = '/home/sicm6455/python/public/'
+# STATIC_ROOT = '/home/sicm6455/python/public/'
+STATIC_ROOT = BASE_DIR / 'static_cdn'
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = '/home/sicm6455/python/media/'
-# MEDIA_ROOT = BASE_DIR / 'media'
+# MEDIA_ROOT = '/home/sicm6455/python/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 
@@ -160,3 +161,4 @@ EMAIL_HOST_PASSWORD = 'password'
 EMAIL_USE_TLS = True
 EMAIL_USE_SSL = False
 
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
